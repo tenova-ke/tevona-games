@@ -1,65 +1,66 @@
 // server.js
+require("dotenv").config();
 const express = require("express");
 const http = require("http");
-const { Server } = require("socket.io");
 const cors = require("cors");
-
-const authRoutes = require("./routes/auth.routes");
-const gameRoutes = require("./routes/game.routes");
-const chatRoutes = require("./routes/chat.routes");
-const voteRoutes = require("./routes/vote.routes");
+const { Server } = require("socket.io");
+const { supabase } = require("./config/supabase");
 
 const app = express();
 const server = http.createServer(app);
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Routes
-app.use("/auth", authRoutes);
-app.use("/game", gameRoutes);
-app.use("/chat", chatRoutes);
-app.use("/vote", voteRoutes);
+// API routes
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/game", require("./routes/game"));
+app.use("/api/chat", require("./routes/chat"));
 
-// --- SOCKET.IO ---
+// Sockets
 const io = new Server(server, {
   cors: {
-    origin: "*", // TODO: lock down later for production
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
 
-// Handle socket connections
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
+  console.log(`✅ User connected: ${socket.id}`);
 
-  // Join game room
-  socket.on("join_game", ({ gameId, userId }) => {
-    socket.join(gameId);
-    io.to(gameId).emit("system", `${userId} joined game ${gameId}`);
+  // Handle chat messages
+  socket.on("chat_message", async (msg) => {
+    try {
+      // Save to Supabase
+      const { data, error } = await supabase
+        .from("chats")
+        .insert([
+          {
+            user_id: msg.user_id,
+            message: msg.message,
+            game_id: msg.game_id || null,
+          },
+        ])
+        .select();
+
+      if (error) {
+        console.error("Supabase insert error:", error.message);
+        return;
+      }
+
+      // Broadcast to all clients
+      io.emit("chat_message", data[0]);
+    } catch (err) {
+      console.error("Chat socket error:", err.message);
+    }
   });
 
-  // Chat message
-  socket.on("chat_message", ({ gameId, userId, message }) => {
-    io.to(gameId).emit("chat_message", { userId, message, ts: Date.now() });
-  });
-
-  // Vote cast
-  socket.on("vote_cast", ({ gameId, voterId, targetId, round }) => {
-    io.to(gameId).emit("vote_update", { voterId, targetId, round });
-  });
-
-  // Game state update (e.g., killed, round change)
-  socket.on("game_update", ({ gameId, payload }) => {
-    io.to(gameId).emit("game_update", payload);
-  });
-
+  // Handle disconnection
   socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
+    console.log(`❌ User disconnected: ${socket.id}`);
   });
 });
 
-// Start server
+// Server listen
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
