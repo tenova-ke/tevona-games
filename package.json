@@ -1,0 +1,8 @@
+{
+  "name": "tevona-games",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ]
+}
