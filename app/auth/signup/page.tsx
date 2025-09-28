@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -10,6 +11,8 @@ const supabase = createClient(
 );
 
 export default function SignupPage() {
+  const router = useRouter();
+
   const [form, setForm] = useState({
     name: "",
     username: "",
@@ -42,7 +45,7 @@ export default function SignupPage() {
 
     setLoading(true);
 
-    // ✅ Check if username is unique (custom table "profiles")
+    // ✅ Check if username is unique
     const { data: existing } = await supabase
       .from("profiles")
       .select("id")
@@ -72,7 +75,8 @@ export default function SignupPage() {
     if (error) {
       setMessage(error.message);
     } else {
-      setMessage("Check your inbox to confirm your account!");
+      // ✅ Redirect after signup
+      router.push("/games");
     }
   };
 
