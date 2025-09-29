@@ -1,94 +1,79 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import Image from "next/image";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
-export default function WolfLobby() {
-  const [players, setPlayers] = useState<string[]>(["You"]);
-  const [timeLeft, setTimeLeft] = useState(30);
-  const [gameStarted, setGameStarted] = useState(false);
-
-  // Timer countdown
-  useEffect(() => {
-    if (timeLeft > 0 && !gameStarted) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (timeLeft === 0 && !gameStarted) {
-      handleStart();
-    }
-  }, [timeLeft, gameStarted]);
-
-  const handleInvite = () => {
-    navigator.clipboard.writeText(window.location.href);
-    alert("Link copied! Share with friends to join your game.");
-  };
-
-  const handleStart = () => {
-    let finalPlayers = [...players];
-    if (finalPlayers.length === 1) {
-      finalPlayers.push("AI Wolf", "AI Villager");
-    }
-    setPlayers(finalPlayers);
-    setGameStarted(true);
-  };
-
+export default function WolfLandingPage() {
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center p-6">
-      <h1 className="text-3xl font-bold mb-4">Werewolf Lobby</h1>
-
-      {!gameStarted ? (
-        <div className="bg-gray-800 p-6 rounded-xl shadow-lg w-full max-w-md">
-          <p className="mb-4 text-center text-gray-300">
-            Waiting for players... Game starts in{" "}
-            <span className="font-bold text-yellow-400">{timeLeft}s</span>
-          </p>
-
-          <ul className="space-y-2 mb-4">
-            {players.map((p, i) => (
-              <li
-                key={i}
-                className="bg-gray-700 p-2 rounded-md text-center text-sm"
-              >
-                {p}
-              </li>
-            ))}
-          </ul>
-
-          <div className="flex gap-2">
-            <button
-              onClick={handleInvite}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-md"
-            >
-              Invite Friends
-            </button>
-            <button
-              onClick={handleStart}
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white p-2 rounded-md"
-            >
-              Start Now
-            </button>
-          </div>
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black text-white">
+      {/* Hero Section */}
+      <div className="relative h-[60vh] w-full">
+        <Image
+          src="/IMG-20250929-WA0106.jpg"
+          alt="Werewolf banner"
+          fill
+          priority
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center"
+          >
+            <h1 className="text-5xl font-bold mb-4">Welcome to Werewolf</h1>
+            <p className="text-lg text-gray-300">
+              Gather your friends. Find the werewolves. Survive the night.
+            </p>
+          </motion.div>
         </div>
-      ) : (
-        <div className="bg-gray-800 p-6 rounded-xl shadow-lg w-full max-w-md text-center">
-          <h2 className="text-xl font-semibold mb-4">Game Started!</h2>
-          <ul className="space-y-2">
-            {players.map((p, i) => (
-              <li
-                key={i}
-                className="bg-gray-700 p-2 rounded-md text-center text-sm"
-              >
-                {p}
-              </li>
-            ))}
-          </ul>
-          <p className="mt-4 text-gray-400 text-sm">Gameplay coming next...</p>
-        </div>
-      )}
+      </div>
 
-      <p className="mt-6 text-sm text-gray-500">
-        <Link href="/">← Back to Home</Link>
-      </p>
+      {/* How to Play */}
+      <section className="max-w-4xl mx-auto px-4 py-12 grid md:grid-cols-2 gap-6">
+        <motion.div
+          initial={{ opacity: 0, x: -40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Card className="bg-gray-800/80 border border-gray-700 rounded-2xl shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold">Step 1</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>Make sure you’ve signed up before joining a lobby.</p>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, x: 40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <Card className="bg-gray-800/80 border border-gray-700 rounded-2xl shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold">Step 2</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>Join a game by entering the code or using an invite link.</p>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </section>
+
+      {/* Start Game CTA */}
+      <div className="text-center pb-16">
+        <Link href="/wolf/start">
+          <Button className="px-10 py-6 text-lg rounded-full bg-gradient-to-r from-red-600 to-red-800 shadow-xl hover:scale-105 transition-transform">
+            Start Game
+          </Button>
+        </Link>
+      </div>
     </div>
   );
-}
+      }
